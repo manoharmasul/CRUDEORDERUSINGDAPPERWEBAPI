@@ -2,8 +2,7 @@
 {
     public class Order
     {
-        
-
+       
         public int oId { get; set; }
         public string custName { get; set; }
         public string billintAddress { get; set; }

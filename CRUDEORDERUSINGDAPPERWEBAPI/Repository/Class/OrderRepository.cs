@@ -27,8 +27,9 @@ namespace CRUDEORDERUSINGDAPPERWEBAPI.Repository.Class
 
                 if(result !=null)
                 {
-                    rest = await insertupDate(orderdetailslist, result);
-                    order.totalorderAmmount = rest;
+                    rest = await insertupDate(orderdetailslist, result);                    
+                    var qry = "update tblOrderr set totalorderAmmount=@totalorderAmmount where oId=@oId";
+                    var retss = await connection.ExecuteAsync(qry, new { totalorderAmmount =rest,oId=result});
 
                 }
                 return Convert.ToInt32(rest); 
@@ -59,11 +60,11 @@ namespace CRUDEORDERUSINGDAPPERWEBAPI.Repository.Class
 
                         //must declare the scaler Variable total orderammount
 
-                        var p = new DynamicParameters();
-                        p.Add("totalorderAmmount", orrder.totalorderAmmount);
-                        p.Add("oId", od.oId);
-                        var qry = "update tblOrderr set totalorderAmmount=@totalorderAmmount where oId=@oId";
-                        var retss = await connnection.ExecuteAsync(qry, p);
+                        //var p = new DynamicParameters();
+                        //p.Add("totalorderAmmount", orrder.totalorderAmmount);
+                        //p.Add("oId", od.oId);
+                        //var qry = "update tblOrderr set totalorderAmmount=@totalorderAmmount where oId=@oId";
+                        //var retss = await connnection.ExecuteAsync(qry, p);
                     }
 
 
@@ -115,7 +116,7 @@ namespace CRUDEORDERUSINGDAPPERWEBAPI.Repository.Class
             }
         }
 
-        public async Task<int> UpdateOrder(Order order)
+        /*public async Task<int> UpdateOrder(Order order)
         {
             double rest = 0;
             var query = @"update tblOrderr set custName=@custName,shippingAddress=@shippingAddress,
@@ -153,10 +154,10 @@ namespace CRUDEORDERUSINGDAPPERWEBAPI.Repository.Class
                  }
 
                  return Convert.ToInt32(rest);
-             }*/
+             }
 
-        }
-        public async Task<double> UpdateOrderDetails(List<OrderDetails> orderlist,int result)
+        }*/
+       /* public async Task<double> UpdateOrderDetails(List<OrderDetails> orderlist,int result)
         {
             Order order=new Order();
             int ret = 0;
@@ -192,6 +193,63 @@ namespace CRUDEORDERUSINGDAPPERWEBAPI.Repository.Class
                 
             }
             return gdTotal;
+        }*/
+
+        public async Task<int> DeleteOrder(int id)
+        {
+            var query = "delete tblOrderr where oId=@oId";
+            using(var connection = _context.CreateConnection())
+            {
+                var resultd =await DeleteOrderDetails(id);   
+
+                var result = await connection.ExecuteAsync(query, new { oId = id });
+                return result;
+
+            }
         }
+        public async Task<int> DeleteOrderDetails(int id)
+        {
+            var query = "delete from tblorderDetailss where oId=@oId";
+            using(var connection=_context.CreateConnection())
+            {
+                var result = await connection.ExecuteAsync(query, new {oId=id});
+                return result;
+            }
+        }
+
+        public async Task<double> UpdateOrder(Order order)
+        {
+            double ret = 0;
+            var query = "update tblOrderr set custName=@custName,billintAddress=@billintAddress,shippingAddress=@shippingAddress,totalorderAmmount=@totalorderAmmount where oId=@oId";
+           
+            //List<OrderDetails> orderdetailslist = new List<OrderDetails>();
+            //orderdetailslist = order.orderdetails.ToList();
+
+            using (var connection = _context.CreateConnection())
+            {
+                int result = await connection.ExecuteAsync(query, order);
+                if (result != null)
+                {
+                    var qery = "delete from tblorderDetailss  where oId=@oId";
+                    var resultd = await connection.ExecuteAsync(qery, new { oId = order.oId });
+
+
+                    ret = await insertupDate(order.orderdetails,order.oId);
+
+                    var qry = "update tblOrderr set totalorderAmmount=@totalorderAmmount where oId=@oId";
+                    var retss = await connection.ExecuteAsync(qry, new { totalorderAmmount = ret, oId = order.oId });
+
+                    //must declare the scaler Variable total orderammount
+                    // List<OrderDetails> orderdetailslist = new List<OrderDetails>();
+                    //  var p = new DynamicParameters();
+                    // p.Add("totalorderAmmount", order.totalorderAmmount);
+                    //   p.Add("oId", result);
+                    //var qry = "update tblOrderr set totalorderAmmount=@totalorderAmmount where oId=@oId";
+                    //var retss = await connection.ExecuteAsync(qry, order.);
+                }
+                return ret; 
+            }
+        }
+
     }
 }
